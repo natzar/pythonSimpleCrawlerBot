@@ -15,32 +15,18 @@ python --version
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your_username/your_project_name.git
-cd your_project_name
+git clone https://github.com/natzar/pythonSimpleCrawlerBot.git
+cd pythonSimpleCrawlerBot
 ```
 
 ### 2. Database
-Create a database and import database.sql
 
-### 3. (Optional) Create a virtual environment
+Create a database and import database.sql. 
 
-This step ensures that the dependencies of this project don't interfere with any of your system packages.
+IMPORTANT: Insert the first domain to start with.
 
-- For Windows:
 
-  ```bash
-  python -m venv myenv
-  .\myenv\Scripts\activate
-  ```
-
-- For macOS and Linux:
-
-  ```bash
-  python3 -m venv myenv
-  source myenv/bin/activate
-  ```
-
-### 4. Install the dependencies
+### 3. Install the dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -48,7 +34,15 @@ pip install -r requirements.txt
 
 ## Usage
 
-python crawler.py
+python3 crawler.py
+
+Set a cronjob to maintain it running always.
+
+Set MAX_THREADS 
+
+## Contribute
+
+Pull requests accepted. Next thing is adding "plugins" so everyone can add any data 
 
 ## License
 
