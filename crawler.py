@@ -165,10 +165,12 @@ def main():
     display_cli_header()
     session = Session()
     if session.bind:
-        print("Session is connected to the database!")
+        print("[Database] Session is connected to the database!")
     else:
-        print("Session is NOT connected!")
-
+        print("[Database] Session is NOT connected!")
+    line = "=" * 50
+    print(f"[Execution params] Domains per Batch: {LIMIT_BATCH_DOMAINS}, Max threads: {MAX_THREADS}")
+    print(line)
     domains = session.query(Domain).order_by(Domain.updated.asc()).limit(LIMIT_BATCH_DOMAINS).all()
 
     # Using ThreadPoolExecutor to multi-thread the crawling process
