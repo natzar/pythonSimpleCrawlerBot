@@ -39,7 +39,7 @@ DB_PASSWORD = ""
 DB_HOST = "localhost"
 DB_NAME = "test"
 
-MAX_THREADS = 3 # parallel execution
+MAX_THREADS = 1 # parallel execution
 
 Base = declarative_base()
 
@@ -62,7 +62,7 @@ engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
-def get_domain_from_url(url):
+def extract_domain_from_url(url):
     try:
         # Extract netloc (i.e., domain name) from the URL
         domain = urlparse(url).netloc
@@ -71,7 +71,7 @@ def get_domain_from_url(url):
         print(f"Error parsing URL {url}: {e}")
         return None
 
-def get_details(domain):
+def fetch_domain_details(domain):
     headers = {"User-Agent": CHROME_USER_AGENT}
     try:
         response = requests.get('http://'+domain, headers=headers)
@@ -84,7 +84,7 @@ def get_details(domain):
         description = description_tag['content'] if description_tag else None
 
 		# Extract all links and convert to domains
-        links = list(set([get_domain_from_url(a['href']) for a in soup.find_all('a', href=True) if get_domain_from_url(a['href'])]))
+        links = list(set([extract_domain_from_url(a['href']) for a in soup.find_all('a', href=True) if extract_domain_from_url(a['href'])]))
 
         title = str(title)
         description = str(description)
@@ -102,7 +102,7 @@ def get_details(domain):
         print(f"Error fetching details for {domain}: {e}")
         return None
 
-def update_or_create(session, model, defaults=None, **kwargs):
+def upsert_domain_record(session, model, defaults=None, **kwargs):
     instance = session.query(model).filter_by(**kwargs).one_or_none()
     if instance:
         print(instance.domain)  # Replace 'attribute_name' with the actual attribute you want to print.
@@ -126,11 +126,11 @@ def update_or_create(session, model, defaults=None, **kwargs):
         print(f"New record created with ID: {instance.id}")
         return instance
 
-def save_data(domain_name, data):
+def store_domain_data(domain_name, data):
     session = Session()
     
     # Use update_or_create for the current domain
-    domain = update_or_create(
+    domain = upsert_domain_record(
         session, 
         Domain, 
         defaults={'http_code': data['http_code'], 'title': data['title'], 'description': data['description']},
@@ -139,7 +139,7 @@ def save_data(domain_name, data):
 
     # Use update_or_create for each link
     for link_domain in data['links']:
-        link_instance = update_or_create(session, Domain, domain=link_domain)
+        link_instance = upsert_domain_record(session, Domain, domain=link_domain)
         if link_instance:
             print(f"Processed link domain: {link_domain}")
         else:
@@ -147,14 +147,14 @@ def save_data(domain_name, data):
     
     session.close()
 
-def crawl_domain(domain):
-    data = get_details(domain.domain)
+def process_domain(domain):
+    data = fetch_domain_details(domain.domain)
     print(f"Data fetched for {domain.domain}: {data}")
     if data:
-        save_data(domain.domain, data)
+        store_domain_data(domain.domain, data)
 
 def main():
-    print_cli_header()
+    display_cli_header()
     session = Session()
     if session.bind:
         print("Session is connected to the database!")
@@ -165,12 +165,13 @@ def main():
 
     # Using ThreadPoolExecutor to multi-thread the crawling process
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
-        executor.map(crawl_domain, domains)
-def print_cli_header():
+        executor.map(process_domain, domains)
+
+def display_cli_header():
     line = "=" * 50
-    name = "   Your Script Name"
+    name = "   pythonSimpleCrawlerBot"
     version = "Version: 1.0.0"
-    description = "This script does amazing things!"
+    description = "Scrape the internet, contact @betoayesa for support"
 
     # ASCII art for demonstration
     logo = """
