@@ -1,4 +1,4 @@
-# pythonSimpleCrawlerBot
+# python Simple Crawler Bot
 This script is a version of the one used at Domstry.com. You can use it to crawl the internet. It fetches domains, stores the data, and adds the links found in the current domain to the queue.
 
 
