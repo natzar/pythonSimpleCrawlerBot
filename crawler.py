@@ -81,7 +81,7 @@ def fetch_domain_details(domain):
         
         title = soup.title.string if soup.title else None
         description_tag = soup.find('meta', attrs={"name": "description"}) or soup.find('meta', attrs={"property": "og:description"})
-        description = description_tag['content'] if description_tag else None
+        description = description_tag['content'][:255] if description_tag else None
 
 		# Extract all links and convert to domains
         links = list(set([extract_domain_from_url(a['href']) for a in soup.find_all('a', href=True) if extract_domain_from_url(a['href'])]))
@@ -104,26 +104,22 @@ def fetch_domain_details(domain):
 
 def upsert_domain_record(session, model, defaults=None, **kwargs):
     instance = session.query(model).filter_by(**kwargs).one_or_none()
-    if instance:
-        print(instance.domain)  # Replace 'attribute_name' with the actual attribute you want to print.
-
-    if instance:
-        print(f"Found existing record for {model} with attributes {kwargs}")
+  
+    if instance:       
         for key, value in defaults.items():
             setattr(instance, key, value)
-        print("before commit...")
         try:
             session.commit()
-            print(f"Updated record for {model} with ID: {instance.id}")
+            print(f"Updated domain with ID: {instance.id}")
         except Exception as e:
             print(f"Error during commit: {e}")
     else:
-        print(f"Creating new record for {model} with attributes {kwargs}")
+        print(f"Storing new domain with attributes {kwargs}")
         params = {**kwargs, **(defaults or {})}
         instance = model(**params)
         session.add(instance)
         session.commit()
-        print(f"New record created with ID: {instance.id}")
+        print(f"New domain added with ID: {instance.id}")
         return instance
 
 def store_domain_data(domain_name, data):
@@ -141,15 +137,14 @@ def store_domain_data(domain_name, data):
     for link_domain in data['links']:
         link_instance = upsert_domain_record(session, Domain, domain=link_domain)
         if link_instance:
-            print(f"Processed link domain: {link_domain}")
+            print(f"Added new domain to the queue: {link_domain}")
         else:
-            print(f"Failed to process link domain: {link_domain}")
+            print(f"Failed to add domain: {link_domain} to the queue")
     
     session.close()
 
 def process_domain(domain):
-    data = fetch_domain_details(domain.domain)
-    print(f"Data fetched for {domain.domain}: {data}")
+    data = fetch_domain_details(domain.domain)    
     if data:
         store_domain_data(domain.domain, data)
 
