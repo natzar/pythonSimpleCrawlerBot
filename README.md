@@ -1,5 +1,5 @@
 # pythonSimpleCrawlerBot
-Crawl the internet with this simple script.
+This script is a version of the one used at Domstry.com. You can use it to crawl the internet. It fetches domains, store the data, and adds the link to the queue.
 
 
 ## Prerequisites
@@ -37,7 +37,9 @@ pip install -r requirements.txt
 python3 crawler.py
 
 Set a cronjob to maintain it running always.
-
+```bash
+* * * * * python3 crawler.py
+``` 
 Set MAX_THREADS 
 
 ## Contribute
