@@ -1,5 +1,5 @@
 # pythonSimpleCrawlerBot
-This script is a version of the one used at Domstry.com. You can use it to crawl the internet. It fetches domains, store the data, and adds the links found in current domain to the queue.
+This script is a version of the one used at Domstry.com. You can use it to crawl the internet. It fetches domains, stores the data, and adds the links found in the current domain to the queue.
 
 
 ## Prerequisites
@@ -31,7 +31,15 @@ IMPORTANT: Insert the first domain to start with.
 ```bash
 pip install -r requirements.txt
 ```
+### 4. Configure
 
+Edit crawler.py and look for constants sections:
+
+```bash
+MAX_THREADS = 1 (number of parallel domains fetched at the same time) 
+DB_USER, DB_HOST, DB_PASSWORD = MySql Config Values
+
+```
 ## Usage
 
 python3 crawler.py
@@ -40,12 +48,19 @@ Set a cronjob to maintain it running always.
 ```bash
 * * * * * python3 crawler.py
 ``` 
-Set MAX_THREADS 
+## Customize
+
+In case you want to add new fields and extract additional data you would have to:
+- add a new field in the table (database)
+- modify Domain Class (add new field and type)
+- fetch_domain_details function should return your new field
+
+
 ## Support
 Contact @betoayesa on twitter/x
 ## Contribute
 
-Pull requests accepted. Next thing is adding "plugins" so everyone can add any data 
+Pull requests accepted. The next thing is adding "plugins" so everyone can add any data 
 
 ## License
 
