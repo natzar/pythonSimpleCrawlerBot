@@ -29,7 +29,7 @@ import requests
 from sqlalchemy import create_engine, MetaData, Column, Integer, String, DateTime, UniqueConstraint, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
+import tldextract
 
 
 # Constants
@@ -39,7 +39,9 @@ DB_PASSWORD = ""
 DB_HOST = "localhost"
 DB_NAME = "test"
 
-MAX_THREADS = 1 # parallel execution
+SUBDOMAINS_ARE_OK = False # If you want to store domains, subdomains and www, set it to True
+LIMIT_BATCH_DOMAINS = 100  # Number of domains fetched on each run
+MAX_THREADS = 2 # Total number of domains fetched in parallel
 
 Base = declarative_base()
 
@@ -64,9 +66,20 @@ Session = sessionmaker(bind=engine)
 
 def extract_domain_from_url(url):
     try:
-        # Extract netloc (i.e., domain name) from the URL
-        domain = urlparse(url).netloc
-        return domain
+        if SUBDOMAINS_ARE_OK:
+            # Extract netloc (i.e., domain name) from the URL
+            domain = urlparse(url).netloc
+            return domain
+        else:      
+            extracted = tldextract.extract(url)        
+            if not extracted.domain or not extracted.suffix:
+                return None
+            # Combine domain and suffix
+            domain_with_suffix = f"{extracted.domain}.{extracted.suffix}"
+            # Validate the domain format by parsing it. If this succeeds, then it's a valid domain format.
+            domain = urlparse(f"https://{domain_with_suffix}").netloc       
+            # Return the parsed domain (netloc)
+            return domain
     except Exception as e:
         print(f"Error parsing URL {url}: {e}")
         return None
@@ -74,7 +87,7 @@ def extract_domain_from_url(url):
 def fetch_domain_details(domain):
     headers = {"User-Agent": CHROME_USER_AGENT}
     try:
-        response = requests.get('http://'+domain, headers=headers)
+        response = requests.get('http://'+domain, headers=headers, timeout=5)
         response.raise_for_status()  # Raise HTTPError for bad responses
 
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -125,15 +138,15 @@ def upsert_domain_record(session, model, defaults=None, **kwargs):
 def store_domain_data(domain_name, data):
     session = Session()
     
-    # Use update_or_create for the current domain
-    domain = upsert_domain_record(
+    # Update current domain
+    upsert_domain_record(
         session, 
         Domain, 
-        defaults={'http_code': data['http_code'], 'title': data['title'], 'description': data['description']},
+        defaults=data,
         domain=domain_name
     )
 
-    # Use update_or_create for each link
+    # update_or_create for each link
     for link_domain in data['links']:
         link_instance = upsert_domain_record(session, Domain, domain=link_domain)
         if link_instance:
@@ -156,7 +169,7 @@ def main():
     else:
         print("Session is NOT connected!")
 
-    domains = session.query(Domain).order_by(Domain.updated.asc()).all()
+    domains = session.query(Domain).order_by(Domain.updated.asc()).limit(LIMIT_BATCH_DOMAINS).all()
 
     # Using ThreadPoolExecutor to multi-thread the crawling process
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
@@ -164,10 +177,11 @@ def main():
 
 def display_cli_header():
     line = "=" * 50
-    name = "pythonSimpleCrawlerBot"
-    version = "Version: 1.0.0"
-    license = "GPL3"
-    description = "Repo: https://github.com/natzar/pythonSimpleCrawlerBot"
+    name = "Package: pythonSimpleCrawlerBot"
+    version = "Version: 1.0.1"
+    author = "Author: Beto Ayesa, @betoayesa, beto.phpninja@gmail.com"
+    license = "License: GPL3"
+    description = "Fork it: https://github.com/natzar/pythonSimpleCrawlerBot"
 
     # ASCII art for demonstration
     logo = """
@@ -185,6 +199,7 @@ def display_cli_header():
     print(logo)
     print(name)
     print(version)
+    print(author)
     print(license)
     print(description)
     print(line)
