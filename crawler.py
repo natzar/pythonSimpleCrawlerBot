@@ -110,7 +110,7 @@ def upsert_domain_record(session, model, defaults=None, **kwargs):
             setattr(instance, key, value)
         try:
             session.commit()
-            print(f"Updated domain with ID: {instance.id}")
+            print(f"Updated domain with ID: {instance.id} {instance.domain}")
         except Exception as e:
             print(f"Error during commit: {e}")
     else:
@@ -164,22 +164,28 @@ def main():
 
 def display_cli_header():
     line = "=" * 50
-    name = "   pythonSimpleCrawlerBot"
+    name = "pythonSimpleCrawlerBot"
     version = "Version: 1.0.0"
-    description = "Scrape the internet, contact @betoayesa for support"
+    license = "GPL3"
+    description = "Repo: https://github.com/natzar/pythonSimpleCrawlerBot"
 
     # ASCII art for demonstration
     logo = """
-    __   __    _    _
-   |  \ /  \  / \  / \
-   |   V    |/ _ \| 0 |
-   |_ _| \__/ \_/ \_/
+   
+   _____ _                 __     ______                    __          ____        __ 
+  / ___/(_____ ___  ____  / ___  / _____________ __      __/ ___  _____/ __ )____  / /_
+  \__ \/ / __ `__ \/ __ \/ / _ \/ /   / ___/ __ `| | /| / / / _ \/ ___/ __  / __ \/ __/
+ ___/ / / / / / / / /_/ / /  __/ /___/ /  / /_/ /| |/ |/ / /  __/ /  / /_/ / /_/ / /_  
+/____/_/_/ /_/ /_/ .___/_/\___/\____/_/   \__,_/ |__/|__/_/\___/_/  /_____/\____/\__/  
+                /_/                                                                    
+
     """
 
     print(line)
     print(logo)
     print(name)
     print(version)
+    print(license)
     print(description)
     print(line)
 
