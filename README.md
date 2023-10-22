@@ -1,5 +1,5 @@
 # python Simple Crawler Bot
-This script is a version of the one used at Domstry.com. You can use it to crawl the internet. It starts on the FIRST domain, links are extracted for the next run. It fetches domains, stores the data, and adds the links found in the current domain to the queue.
+This script is a version of the one used at Domstry.com. You can use it to crawl the internet. It starts on the FIRST domain, links are extracted for the next run. It fetches domains, stores the data, and adds the links found in the current domain to the queue. It never ends.
 
 As an example, right now it stores http_code, title, and description. It's very easy to add new fields and extract more details from each domain.
 
