@@ -42,18 +42,25 @@ DB_USER, DB_HOST, DB_PASSWORD = MySql Config Values
 ```
 ## Usage
 
-python3 crawler.py
-
-Set a cronjob to maintain it running always.
+Run it manually:
 ```bash
-* * * * * python3 crawler.py
-``` 
+python3 crawler.py
+```
+As a cronjob:
+```bash
+*/5 * * * * python3 /full/path/crawler.py
+```
+Looks for ways to keep running a command in your system environment.
+
 ## Customize
 
 In case you want to add new fields and extract additional data you would have to:
-- add a new field in the table (database)
-- modify Domain Class (add new field and type)
-- fetch_domain_details function should return your new field
+*Modify Database:*
+- Add a new field in the table (Database)
+- Modify *Domain Class* (ORM) - add new field and type
+
+*Modify function fetch_domain_details function:*
+It should return your new field. Feel free to add your code after beautifulsoup, calculate your new field value, and return it, it the field exists in the database it will be stored.
 
 
 ## Support
