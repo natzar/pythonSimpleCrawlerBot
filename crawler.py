@@ -20,19 +20,26 @@
         Beto Ayesa, @betoayesa, beto.phpninja@gmail.com
 """
 
-
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, UniqueConstraint, func
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from bs4 import BeautifulSoup
-import requests
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 
+from bs4 import BeautifulSoup
+import requests
+from sqlalchemy import create_engine, MetaData, Column, Integer, String, DateTime, UniqueConstraint, func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+
 
 # Constants
 CHROME_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+DB_USERNAME = "root"
+DB_PASSWORD = ""
+DB_HOST = "localhost"
+DB_NAME = "test"
+
+MAX_THREADS = 3 # parallel execution
 
 Base = declarative_base()
 
@@ -49,7 +56,8 @@ class Domain(Base):
     __table_args__ = (UniqueConstraint('domain'),)
 
 # Set up the database
-DATABASE_URL = "sqlite:///crawler.db"
+DATABASE_URL = "mysql+mysqlconnector://" + DB_USERNAME + ":" + DB_PASSWORD + "@" + DB_HOST + "/" + DB_NAME
+
 engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
@@ -66,7 +74,7 @@ def get_domain_from_url(url):
 def get_details(domain):
     headers = {"User-Agent": CHROME_USER_AGENT}
     try:
-        response = requests.get(domain, headers=headers)
+        response = requests.get('http://'+domain, headers=headers)
         response.raise_for_status()  # Raise HTTPError for bad responses
 
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -75,8 +83,11 @@ def get_details(domain):
         description_tag = soup.find('meta', attrs={"name": "description"}) or soup.find('meta', attrs={"property": "og:description"})
         description = description_tag['content'] if description_tag else None
 
-        # Extract all links and convert to domains
-        links = [get_domain_from_url(a['href']) for a in soup.find_all('a', href=True) if get_domain_from_url(a['href'])]
+		# Extract all links and convert to domains
+        links = list(set([get_domain_from_url(a['href']) for a in soup.find_all('a', href=True) if get_domain_from_url(a['href'])]))
+
+        title = str(title)
+        description = str(description)
 
         return {
             'http_code': response.status_code,
@@ -91,57 +102,92 @@ def get_details(domain):
         print(f"Error fetching details for {domain}: {e}")
         return None
 
-def get_or_create(session, model, **kwargs):
+def update_or_create(session, model, defaults=None, **kwargs):
     instance = session.query(model).filter_by(**kwargs).one_or_none()
     if instance:
-        return instance
+        print(instance.domain)  # Replace 'attribute_name' with the actual attribute you want to print.
+
+    if instance:
+        print(f"Found existing record for {model} with attributes {kwargs}")
+        for key, value in defaults.items():
+            setattr(instance, key, value)
+        print("before commit...")
+        try:
+            session.commit()
+            print(f"Updated record for {model} with ID: {instance.id}")
+        except Exception as e:
+            print(f"Error during commit: {e}")
     else:
-        instance = model(**kwargs)
+        print(f"Creating new record for {model} with attributes {kwargs}")
+        params = {**kwargs, **(defaults or {})}
+        instance = model(**params)
         session.add(instance)
         session.commit()
+        print(f"New record created with ID: {instance.id}")
         return instance
 
 def save_data(domain_name, data):
     session = Session()
-    domain = session.query(Domain).filter_by(domain=domain_name).first()
-    if domain:
-        domain.http_code = data['http_code']
-        domain.title = data['title']
-        domain.description = data['description']
+    
+    # Use update_or_create for the current domain
+    domain = update_or_create(
+        session, 
+        Domain, 
+        defaults={'http_code': data['http_code'], 'title': data['title'], 'description': data['description']},
+        domain=domain_name
+    )
 
-        for link_domain in data['links']:
-            get_or_create(session, Domain, domain=link_domain)
-
-    session.commit()
-    session.close()
-
-def save_data(domain_name, data):
-    session = Session()
-    domain = session.query(Domain).filter_by(domain=domain_name).first()
-    if domain:
-        domain.http_code = data['http_code']
-        domain.title = data['title']
-        domain.description = data['description']
-
-        for link in data['links']:
-            new_domain = Domain(domain=link)
-            session.add(new_domain)
-
-    session.commit()
+    # Use update_or_create for each link
+    for link_domain in data['links']:
+        link_instance = update_or_create(session, Domain, domain=link_domain)
+        if link_instance:
+            print(f"Processed link domain: {link_domain}")
+        else:
+            print(f"Failed to process link domain: {link_domain}")
+    
     session.close()
 
 def crawl_domain(domain):
     data = get_details(domain.domain)
+    print(f"Data fetched for {domain.domain}: {data}")
     if data:
         save_data(domain.domain, data)
 
 def main():
+    print_cli_header()
     session = Session()
+    if session.bind:
+        print("Session is connected to the database!")
+    else:
+        print("Session is NOT connected!")
+
     domains = session.query(Domain).order_by(Domain.updated.asc()).all()
 
     # Using ThreadPoolExecutor to multi-thread the crawling process
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         executor.map(crawl_domain, domains)
+def print_cli_header():
+    line = "=" * 50
+    name = "   Your Script Name"
+    version = "Version: 1.0.0"
+    description = "This script does amazing things!"
+
+    # ASCII art for demonstration
+    logo = """
+    __   __    _    _
+   |  \ /  \  / \  / \
+   |   V    |/ _ \| 0 |
+   |_ _| \__/ \_/ \_/
+    """
+
+    print(line)
+    print(logo)
+    print(name)
+    print(version)
+    print(description)
+    print(line)
+
+
 
 if __name__ == '__main__':
     main()
