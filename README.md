@@ -41,7 +41,8 @@ Set a cronjob to maintain it running always.
 * * * * * python3 crawler.py
 ``` 
 Set MAX_THREADS 
-
+## Support
+Contact @betoayesa on twitter/x
 ## Contribute
 
 Pull requests accepted. Next thing is adding "plugins" so everyone can add any data 
