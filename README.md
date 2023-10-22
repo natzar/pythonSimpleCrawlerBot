@@ -67,7 +67,8 @@ It should return your new field. Feel free to add your code after BeautifulSoup,
 
 
 ## Support
-Contact @betoayesa on twitter/x
+Create an Issue to get support.
+
 ## Contribute
 
 Pull requests are welcomed. 
