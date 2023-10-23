@@ -1,5 +1,5 @@
 """
-    pythonSimpleCrawlerBot v.1.0
+    pythonSimpleCrawlerBot v.1.0.1
     
     Copyright (C) 2023 Beto Ayesa
 
