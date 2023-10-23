@@ -45,11 +45,11 @@ DB_USER, DB_HOST, DB_PASSWORD = MySql Config Values
 
 Run it manually:
 ```bash
-python3 crawler.py
+python crawler.py
 ```
 As a cronjob:
 ```bash
-*/5 * * * * python3 /full/path/crawler.py
+*/5 * * * * python /full/path/crawler.py
 ```
 ...
 
