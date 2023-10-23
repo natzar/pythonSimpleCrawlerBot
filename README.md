@@ -5,7 +5,7 @@ As an example, right now it stores http_code, title, and description. It's very 
 
 ## Prerequisites
 
-Ensure you have Python 3.x installed on your system. You can verify using:
+Ensure you have *Python >= 3.10* installed on your system. You can verify using:
 
 ```bash
 python --version
