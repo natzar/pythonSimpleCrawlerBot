@@ -22,7 +22,7 @@ cd pythonSimpleCrawlerBot
 
 ### 2. Database
 
-Create a database and import database.sql. 
+Create a MySql database and import database.sql. 
 
 IMPORTANT: Insert the first domain to start with.
 
