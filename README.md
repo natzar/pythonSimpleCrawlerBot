@@ -1,7 +1,7 @@
 # python Simple Crawler Bot
 This script is a version of the one used at Domstry.com. You can use it to crawl the internet. It starts on the FIRST domain, links are extracted for the next run. It fetches domains, stores the data, and adds the links found in the current domain to the queue. It never ends.
 
-As an example, right now it stores http_code, title, and description. It's very easy to add new fields and extract more details from each domain.
+As an example, right now it stores http_code, title, and description. It's very easy to add new fields and extract more details from each domain. With the latest update, it now also checks if a domain is available for registration by looking for HTTP errors during the connection, which could potentially indicate availability.
 
 ## Prerequisites
 
@@ -24,8 +24,7 @@ cd pythonSimpleCrawlerBot
 
 Create a MySql database and import database.sql. 
 
-IMPORTANT: Insert the first domain to start with.
-
+IMPORTANT: Insert the first domain to start with and the bot will now also check if the domain is potentially available for registration by detecting HTTP errors.
 
 ### 3. Install the dependencies
 
@@ -76,4 +75,3 @@ Pull requests are welcomed.
 ## License
 
 This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
-
